@@ -69,6 +69,9 @@ public:
     // Output module init code
     Swig_banner (f_begin);
 
+    // Runtime comes first, then f_wrappers, and lastly f_init.
+    Printf (f_runtime, "#include <janet.h>\n\n");
+
     Printf (f_init, "static const JanetReg\n");
     Printf (f_init, "cfuns[] = {\n");
 
@@ -79,7 +82,7 @@ public:
     Printf (f_init, "}\n");
     Printf (f_init, "\nJANET_MODULE_ENTRY (JanetTable *env) {\n");
     // TODO: Allow the module name to be a user input flag.
-    Printf (f_init, "  janet_cfuns (env, \"swig\", cfuns);\n");
+    Printf (f_init, "  janet_cfuns (env, \"%s\", cfuns);\n", module);
     Printf (f_init, "}\n");
 
     // Write all to the files
@@ -137,7 +140,26 @@ public:
       }
 
     // Evaluate the result
-    Printf (f_wrappers, "\n  %s result = %s (a1);\n",
+    Printf (f_wrappers, "\n  %s result = %s (",
+            SwigType_str (type, ""), name);
+
+    // Print each argument in the call
+    for (i = 0, p = parms; i < arity; i++)
+      {
+        String *p_type   = Getattr (p, "type");
+        String *p_name   = Getattr (p, "name");
+
+        Printf (f_wrappers, "(%s) %s", p_type, p_name);
+
+        if (i + 1 < arity) {
+          Printf (f_wrappers, ", ");
+        }
+
+        p = nextSibling (p);
+      }
+
+    // End the call
+    Printf (f_wrappers, ");\n",
             SwigType_str (type, ""), name);
 
     Printf (f_wrappers, "\n  return janet_wrap_int (result);\n");
