@@ -162,6 +162,8 @@ public:
     Printf (f_wrappers, ");\n",
             SwigType_str (type, ""), name);
 
+    // Need to do dynamic return values
+    // https://janet-lang.org/capi/wrapping.html
     Printf (f_wrappers, "\n  return janet_wrap_int (result);\n");
     Printf (f_wrappers, "}\n\n");
 
@@ -179,6 +181,8 @@ public:
 
 // Helper things - I should probably be using the TYPEMAP features?
 // http://www.swig.org/Doc1.3/Extending.html
+// See more Janet accessors here:
+// https://janet-lang.org/capi/writing-c-functions.html
 String *
 JANET::getAccessor (String *s)
 {
