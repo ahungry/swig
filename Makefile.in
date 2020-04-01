@@ -103,6 +103,7 @@ check-aliveness:
 	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
 	@$(skip-perl5)    || ./$(TARGET) -perl       -help
 	@$(skip-python)   || ./$(TARGET) -python     -help
+	@$(skip-janet)    || ./$(TARGET) -janet      -help
 	@$(skip-java)     || ./$(TARGET) -java       -help
 	@$(skip-guile)    || ./$(TARGET) -guile      -help
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
@@ -160,6 +161,7 @@ check-examples:					\
 	check-tcl-examples			\
 	check-perl5-examples			\
 	check-python-examples			\
+	check-janet-examples			\
 	check-java-examples			\
 	check-android-examples			\
 	check-guile-examples			\
@@ -221,6 +223,7 @@ check-test-suite:				\
 	check-tcl-test-suite			\
 	check-perl5-test-suite			\
 	check-python-test-suite			\
+	check-janet-test-suite			\
 	check-java-test-suite			\
 	check-guile-test-suite			\
 	check-mzscheme-test-suite		\
@@ -435,7 +438,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+lib-languages = typemaps tcl perl5 python guile janet java mzscheme ruby php ocaml octave \
 	csharp lua r go d javascript javascript/jsc \
 	javascript/v8 scilab xml
 
