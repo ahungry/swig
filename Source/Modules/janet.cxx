@@ -59,11 +59,11 @@ public:
     f_wrappers = NewString ("");
 
     // Register file targets with the SWIG file handler
-    Swig_register_filebyname ("begin", f_begin);
-    Swig_register_filebyname ("header", f_header);
-    Swig_register_filebyname ("wrapper", f_wrappers);
-    Swig_register_filebyname ("runtime", f_runtime);
-    Swig_register_filebyname ("init", f_init);
+    Swig_register_filebyname ("begin"   , f_begin);
+    Swig_register_filebyname ("header"  , f_header);
+    Swig_register_filebyname ("wrapper" , f_wrappers);
+    Swig_register_filebyname ("runtime" , f_runtime);
+    Swig_register_filebyname ("init"    , f_init);
 
     // Output module init code
     Swig_banner (f_begin);
