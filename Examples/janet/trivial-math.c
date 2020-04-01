@@ -1,9 +1,9 @@
  /* File : trivial-math.c */
 
-int sum (int a, int b) {
+int sum_nums (int a, int b) {
   return a + b;
 }
 
-int diff (int x, int y) {
+int diff_nums (int x, int y) {
   return x - y;
 }

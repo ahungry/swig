@@ -113,7 +113,7 @@ public:
     int i;
     Parm *p;
 
-    Printf (f_wrappers, "\nstatic Janet\n");
+    Printf (f_wrappers, "static Janet\n");
     Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
     Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
@@ -122,26 +122,33 @@ public:
     for (i = 0, p = parms; i < arity; i++)
       {
         String *p_type   = Getattr (p, "type");
+        String *p_name   = Getattr (p, "name");
         String *accessor = this->getAccessor (p_type);
 
-        Printf (f_wrappers, "  // Type: %s\n", Getattr (p, "type"));
-        Printf (f_wrappers, "  int a%d = %s (argv, %d);\n", i, accessor, i);
+        // Pull value out of Janet args and into a local var
+        Printf (f_wrappers,
+                "  %s %s = %s (argv, %d);\n",
+                p_type,
+                p_name,
+                accessor,
+                i);
 
         p = nextSibling (p);
       }
 
-    Printf (f_wrappers, "  %s result = %s (a1);\n",
+    // Evaluate the result
+    Printf (f_wrappers, "\n  %s result = %s (a1);\n",
             SwigType_str (type, ""), name);
 
     Printf (f_wrappers, "\n  return janet_wrap_int (result);\n");
-    Printf (f_wrappers, "}\n");
+    Printf (f_wrappers, "}\n\n");
 
-    // Printf (f_wrappers, "functionWrapper   : %s\n", func);
-    // Printf (f_wrappers, "           action : %s\n", action);
-    // Printf (f_wrappers, "           arity  : %d\n", arity);
+    String *fn_name = NewString (name);
+    Replaceall (fn_name, "_", "-");
 
     Printf (f_init, "{\"%s\", %s_wrapped, \"SWIG generated\"},",
-            Replaceall (name, "_", "-"), name);
+            fn_name,
+            name);
 
     return SWIG_OK;
   }
@@ -149,15 +156,17 @@ public:
 };
 
 // Helper things - I should probably be using the TYPEMAP features?
+// http://www.swig.org/Doc1.3/Extending.html
 String *
 JANET::getAccessor (String *s)
 {
-  if (s == "int") {
+  if (Strcmp (s, "int") == 0) {
     return NewString ("janet_getinteger");
   }
 
-  return s;
+  // FIXME: Come up with an appropriate last error clause
   // return NewString ("janet_unknown");
+  return s;
 }
 
 extern "C" Language *
