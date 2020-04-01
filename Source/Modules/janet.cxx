@@ -42,8 +42,6 @@ public:
     String *module  = Getattr (n, "name");
     String *outfile = Getattr (n, "outfile");
 
-    printf ("The outfile is: %s\n", outfile);
-
     // Init I/O
     f_begin = NewFile (outfile, "w", SWIG_output_files ());
 
@@ -68,8 +66,18 @@ public:
     // Output module init code
     Swig_banner (f_begin);
 
+    Printf (f_init, "static const JanetReg\n");
+    Printf (f_init, "cfuns[] = {\n");
+
     // Emit code for children
     Language::top (n);
+
+    Printf (f_init, "  {NULL, NULL, NULL}\n");
+    Printf (f_init, "}\n");
+    Printf (f_init, "\nJANET_MODULE_ENTRY (JanetTable *env) {\n");
+    // TODO: Allow the module name to be a user input flag.
+    Printf (f_init, "  janet_cfuns (env, \"swig\", cfuns);\n");
+    Printf (f_init, "}\n");
 
     // Write all to the files
     Dump (f_runtime  , f_begin);
@@ -97,9 +105,13 @@ public:
     String   *parmstr = ParmList_str_defaultargs (parms); // to string
     String   *func    = SwigType_str (type, NewStringf ("%s(%s)", name, parmstr));
     String   *action  = Getattr (n, "wrap:action");
+    int       arity   = ParmList_numrequired (parms);
 
     Printf (f_wrappers, "functionWrapper   : %s\n", func);
     Printf (f_wrappers, "           action : %s\n", action);
+    Printf (f_wrappers, "           arity  : %d\n", arity);
+
+    Printf (f_init, "{\"%s\", %s_wrap, \"SWIG generated\"},", name, name);
 
     return SWIG_OK;
   }
