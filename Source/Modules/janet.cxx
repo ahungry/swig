@@ -107,11 +107,26 @@ public:
     String   *action  = Getattr (n, "wrap:action");
     int       arity   = ParmList_numrequired (parms);
 
-    Printf (f_wrappers, "functionWrapper   : %s\n", func);
-    Printf (f_wrappers, "           action : %s\n", action);
-    Printf (f_wrappers, "           arity  : %d\n", arity);
+    Printf (f_wrappers, "\nstatic Janet\n");
+    Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
+    Printf (f_wrappers, "{\n");
+    Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
-    Printf (f_init, "{\"%s\", %s_wrap, \"SWIG generated\"},", name, name);
+    // TODO: Iterate each item in parm list and use the janet accessor
+    Printf (f_wrappers, "  int a1 = janet_getinteger (argv, 0);\n");
+
+    Printf (f_wrappers, "  %s result = %s (a1);\n",
+            SwigType_str (type, ""), name);
+
+    Printf (f_wrappers, "\n  return janet_wrap_int (result);\n");
+    Printf (f_wrappers, "}\n");
+
+    // Printf (f_wrappers, "functionWrapper   : %s\n", func);
+    // Printf (f_wrappers, "           action : %s\n", action);
+    // Printf (f_wrappers, "           arity  : %d\n", arity);
+
+    Printf (f_init, "{\"%s\", %s_wrapped, \"SWIG generated\"},",
+            Replaceall (name, "_", "-"), name);
 
     return SWIG_OK;
   }
