@@ -2,6 +2,9 @@
 
 class JANET : public Language
 {
+private:
+  String *getAccessor (String *s);
+
 protected:
   File *f_begin;
   File *f_runtime;
@@ -107,13 +110,25 @@ public:
     String   *action  = Getattr (n, "wrap:action");
     int       arity   = ParmList_numrequired (parms);
 
+    int i;
+    Parm *p;
+
     Printf (f_wrappers, "\nstatic Janet\n");
     Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
     Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
     // TODO: Iterate each item in parm list and use the janet accessor
-    Printf (f_wrappers, "  int a1 = janet_getinteger (argv, 0);\n");
+    for (i = 0, p = parms; i < arity; i++)
+      {
+        String *p_type   = Getattr (p, "type");
+        String *accessor = this->getAccessor (p_type);
+
+        Printf (f_wrappers, "  // Type: %s\n", Getattr (p, "type"));
+        Printf (f_wrappers, "  int a%d = %s (argv, %d);\n", i, accessor, i);
+
+        p = nextSibling (p);
+      }
 
     Printf (f_wrappers, "  %s result = %s (a1);\n",
             SwigType_str (type, ""), name);
@@ -132,6 +147,18 @@ public:
   }
 
 };
+
+// Helper things - I should probably be using the TYPEMAP features?
+String *
+JANET::getAccessor (String *s)
+{
+  if (s == "int") {
+    return NewString ("janet_getinteger");
+  }
+
+  return s;
+  // return NewString ("janet_unknown");
+}
 
 extern "C" Language *
 swig_janet (void)
