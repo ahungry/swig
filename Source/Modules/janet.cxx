@@ -4,6 +4,7 @@ class JANET : public Language
 {
 private:
   String *getAccessor (String *s);
+  String *getRetvalAccessor (String *s);
 
 protected:
   File *f_begin;
@@ -126,12 +127,13 @@ public:
       {
         String *p_type   = Getattr (p, "type");
         String *p_name   = Getattr (p, "name");
-        String *accessor = this->getAccessor (p_type);
+        String *p_typex  = NewString(SwigType_str (p_type, ""));
+        String *accessor = this->getAccessor (p_typex);
 
         // Pull value out of Janet args and into a local var
         Printf (f_wrappers,
                 "  %s %s = %s (argv, %d);\n",
-                p_type,
+                p_typex,
                 p_name,
                 accessor,
                 i);
@@ -148,8 +150,9 @@ public:
       {
         String *p_type   = Getattr (p, "type");
         String *p_name   = Getattr (p, "name");
+        String *p_typex  = NewString(SwigType_str (p_type, ""));
 
-        Printf (f_wrappers, "(%s) %s", p_type, p_name);
+        Printf (f_wrappers, "(%s) %s", p_typex, p_name);
 
         if (i + 1 < arity) {
           Printf (f_wrappers, ", ");
@@ -164,7 +167,12 @@ public:
 
     // Need to do dynamic return values
     // https://janet-lang.org/capi/wrapping.html
-    Printf (f_wrappers, "\n  return janet_wrap_int (result);\n");
+    Printf (f_wrappers, "\n  return ");
+
+    String *p_retval = this->getRetvalAccessor (type);
+    // Printf (f_wrappers, "janet_wrap_<%s>", SwigType_str (type, ""), name);
+    Printf (f_wrappers, "janet_wrap_%s", p_retval);
+    Printf (f_wrappers, " (result);\n");
     Printf (f_wrappers, "}\n\n");
 
     String *fn_name = NewString (name);
@@ -200,7 +208,31 @@ JANET::getAccessor (String *s)
 
   // FIXME: Come up with an appropriate last error clause
   // return NewString ("janet_unknown");
-  return s;
+  // return s;
+  return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+}
+
+// https://janet-lang.org/capi/wrapping.html
+String *
+JANET::getRetvalAccessor (String *s)
+{
+  if (Strcmp (s, "p.") == 0) {
+    return NewString ("pointer");
+  }
+
+  if (Strcmp (s, "double") == 0) {
+    return NewString ("number");
+  }
+
+  if (Strcmp (s, "float") == 0) {
+    return NewString ("number");
+  }
+
+  if (Strcmp (s, "int") == 0) {
+    return NewString ("integer");
+  }
+
+  return NewString ("pointer");
 }
 
 extern "C" Language *
