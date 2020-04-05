@@ -190,6 +190,14 @@ JANET::getAccessor (String *s)
     return NewString ("janet_getinteger");
   }
 
+  if (Strcmp (s, "double") == 0) {
+    return NewString ("janet_getnumber");
+  }
+
+  if (Strcmp (s, "float") == 0) {
+    return NewString ("janet_getnumber");
+  }
+
   // FIXME: Come up with an appropriate last error clause
   // return NewString ("janet_unknown");
   return s;
