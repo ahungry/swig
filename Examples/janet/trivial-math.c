@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct point {
-  int x;
-  int y;
-};
+#include "trivial-math.h"
 
 int sum_nums (int a, int b) {
   return a + b;

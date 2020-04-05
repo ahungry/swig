@@ -104,6 +104,72 @@ public:
     return SWIG_OK;
   }
 
+  virtual int constructorHandler (Node *n)
+  {
+    String   *name    = Getattr (n, "sym:name");
+    SwigType *type    = Getattr (n, "type");
+    ParmList *parms   = Getattr (n, "parms");
+
+    printf ("In constructorHandler....\n");
+    Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
+
+    // wrapperType = membervar;
+    Language::constructorHandler(n);
+    // wrapperType = standard;
+
+    return SWIG_OK;
+  }
+
+
+  virtual int destructorHandler (Node *n)
+  {
+    String   *name    = Getattr (n, "sym:name");
+    SwigType *type    = Getattr (n, "type");
+    ParmList *parms   = Getattr (n, "parms");
+
+    printf ("In destructorHandler....\n");
+    Printf (f_runtime, "destructorHandler -- : %s / %s / %s", name, type, parms);
+
+    // wrapperType = membervar;
+    Language::destructorHandler(n);
+    // wrapperType = standard;
+
+    return SWIG_OK;
+  }
+
+
+  virtual int classHandler (Node *n)
+  {
+    String   *name    = Getattr (n, "sym:name");
+    SwigType *type    = Getattr (n, "type");
+    ParmList *parms   = Getattr (n, "parms");
+
+    printf ("In classHandler....\n");
+    Printf (f_runtime, "classHandler -- : %s / %s / %s", name, type, parms);
+
+    // wrapperType = membervar;
+    Language::classHandler(n);
+    // wrapperType = standard;
+
+    return SWIG_OK;
+  }
+
+  virtual int membervariableHandler (Node *n)
+  {
+    String   *name    = Getattr (n, "sym:name");
+    SwigType *type    = Getattr (n, "type");
+    ParmList *parms   = Getattr (n, "parms");
+
+    printf ("In membervariableHandler....\n");
+    Printf (f_runtime, "membervariableHandler -- : %s / %s / %s", name, type, parms);
+
+    // wrapperType = membervar;
+    Language::membervariableHandler(n);
+    // wrapperType = standard;
+
+    return SWIG_OK;
+  }
+
   virtual int functionWrapper (Node *n)
   {
     String   *name    = Getattr (n, "sym:name");
