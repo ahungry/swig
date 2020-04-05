@@ -111,7 +111,13 @@ public:
     ParmList *parms   = Getattr (n, "parms");
 
     printf ("In constructorHandler....\n");
-    Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
+    // Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
+
+    // Create a new factory function
+    Printf (f_runtime, "\nstruct %s * new_%s () {\n", name, name);
+    Printf (f_runtime, "  struct %s *x = malloc (sizeof (struct %s));\n\n", name, name);
+    Printf (f_runtime, "  return x;\n");
+    Printf (f_runtime, "}\n");
 
     // wrapperType = membervar;
     Language::constructorHandler(n);
@@ -127,8 +133,13 @@ public:
     SwigType *type    = Getattr (n, "type");
     ParmList *parms   = Getattr (n, "parms");
 
+    // Create a new delete function
+    Printf (f_runtime, "\ndelete_%s (struct %s *x) {\n", name, name);
+    Printf (f_runtime, "  free (x);\n");
+    Printf (f_runtime, "}\n");
+
     printf ("In destructorHandler....\n");
-    Printf (f_runtime, "destructorHandler -- : %s / %s / %s", name, type, parms);
+    // Printf (f_runtime, "destructorHandler -- : %s / %s / %s", name, type, parms);
 
     // wrapperType = membervar;
     Language::destructorHandler(n);
@@ -145,7 +156,7 @@ public:
     ParmList *parms   = Getattr (n, "parms");
 
     printf ("In classHandler....\n");
-    Printf (f_runtime, "classHandler -- : %s / %s / %s", name, type, parms);
+    // Printf (f_runtime, "classHandler -- : %s / %s / %s", name, type, parms);
 
     // wrapperType = membervar;
     Language::classHandler(n);
@@ -156,12 +167,35 @@ public:
 
   virtual int membervariableHandler (Node *n)
   {
+    Node     *parent  = Getattr (n, "parentNode");
     String   *name    = Getattr (n, "sym:name");
     SwigType *type    = Getattr (n, "type");
+    // String   *typex   = NewString(SwigType_str (type, ""));
     ParmList *parms   = Getattr (n, "parms");
 
+    String *parentName  = Getattr (parent, "sym:name");
+    String *parentType  = Getattr (parent, "type");
+    // String *parentTypex = NewString(SwigType_str (parentType, ""));
+
+    // we need to define a get and a set for these...
+    // If it was a struct like point->x we end up with point_x_get/1 and
+    // also a point_x_set/2 respectively
+
+    // Make the getter
+    Printf (f_runtime, "\n%s %s_%s_get (struct %s *x) {\n",
+            type, parentName, name, parentName);
+    Printf (f_runtime, "  return x->%s;\n", name);
+    Printf (f_runtime, "}\n");
+
+    // Make the setter
+    Printf (f_runtime, "\nvoid %s_%s_set (struct %s *x, %s v) {\n",
+            parentName, name, parentName, type);
+    Printf (f_runtime, "  x->%s = v;\n", name);
+    Printf (f_runtime, "}\n");
+
     printf ("In membervariableHandler....\n");
-    Printf (f_runtime, "membervariableHandler -- : %s / %s / %s", name, type, parms);
+    Printf (f_runtime, "// membervariableHandler -- : %s / %s / %s\n\n",
+            name, type, parentName);
 
     // wrapperType = membervar;
     Language::membervariableHandler(n);
@@ -298,6 +332,7 @@ JANET::getRetvalAccessor (String *s)
     return NewString ("integer");
   }
 
+  // TODO: Handle void type
   return NewString ("pointer");
 }
 
