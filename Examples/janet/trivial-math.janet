@@ -10,3 +10,23 @@
 (pp point)
 
 (pp (tm/sum-point point))
+
+(def alt-point (tm/new-point))
+
+(tm/point-x-set alt-point 20)
+(tm/point-y-set alt-point 200)
+
+(pp (tm/point-x-get alt-point))
+(pp (tm/point-y-get alt-point))
+
+(pp "Sum pre deletion...")
+(pp (tm/sum-point alt-point))
+
+(pp alt-point)
+(pp (tm/delete-point alt-point))
+
+(pp alt-point)
+
+# Ok, not great that its still callable, but what can we do?
+(pp "Sum after deletion...")
+(pp (tm/sum-point alt-point))

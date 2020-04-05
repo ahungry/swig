@@ -114,10 +114,10 @@ public:
     // Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
 
     // Create a new factory function
-    Printf (f_runtime, "\nstruct %s * new_%s () {\n", name, name);
-    Printf (f_runtime, "  struct %s *x = malloc (sizeof (struct %s));\n\n", name, name);
-    Printf (f_runtime, "  return x;\n");
-    Printf (f_runtime, "}\n");
+    Printf (f_wrappers, "\nstruct %s * new_%s () {\n", name, name);
+    Printf (f_wrappers, "  struct %s *x = malloc (sizeof (struct %s));\n\n", name, name);
+    Printf (f_wrappers, "  return x;\n");
+    Printf (f_wrappers, "}\n\n");
 
     // wrapperType = membervar;
     Language::constructorHandler(n);
@@ -134,9 +134,9 @@ public:
     ParmList *parms   = Getattr (n, "parms");
 
     // Create a new delete function
-    Printf (f_runtime, "\ndelete_%s (struct %s *x) {\n", name, name);
-    Printf (f_runtime, "  free (x);\n");
-    Printf (f_runtime, "}\n");
+    Printf (f_wrappers, "\nvoid delete_%s (struct %s *x) {\n", name, name);
+    Printf (f_wrappers, "  free (x);\n");
+    Printf (f_wrappers, "}\n\n");
 
     printf ("In destructorHandler....\n");
     // Printf (f_runtime, "destructorHandler -- : %s / %s / %s", name, type, parms);
@@ -182,19 +182,19 @@ public:
     // also a point_x_set/2 respectively
 
     // Make the getter
-    Printf (f_runtime, "\n%s %s_%s_get (struct %s *x) {\n",
+    Printf (f_wrappers, "\n%s %s_%s_get (struct %s *x) {\n",
             type, parentName, name, parentName);
-    Printf (f_runtime, "  return x->%s;\n", name);
-    Printf (f_runtime, "}\n");
+    Printf (f_wrappers, "  return x->%s;\n", name);
+    Printf (f_wrappers, "}\n");
 
     // Make the setter
-    Printf (f_runtime, "\nvoid %s_%s_set (struct %s *x, %s v) {\n",
+    Printf (f_wrappers, "\nvoid %s_%s_set (struct %s *x, %s v) {\n",
             parentName, name, parentName, type);
-    Printf (f_runtime, "  x->%s = v;\n", name);
-    Printf (f_runtime, "}\n");
+    Printf (f_wrappers, "  x->%s = v;\n", name);
+    Printf (f_wrappers, "}\n");
 
     printf ("In membervariableHandler....\n");
-    Printf (f_runtime, "// membervariableHandler -- : %s / %s / %s\n\n",
+    Printf (f_wrappers, "// membervariableHandler -- : %s / %s / %s\n\n",
             name, type, parentName);
 
     // wrapperType = membervar;
@@ -242,8 +242,12 @@ public:
       }
 
     // Evaluate the result
-    Printf (f_wrappers, "\n  %s result = %s (",
-            SwigType_str (type, ""), name);
+    if (Strcmp (type, "void") == 0) {
+      Printf (f_wrappers, "\n  %s (", name);
+    } else {
+      Printf (f_wrappers, "\n  %s result = %s (",
+              SwigType_str (type, ""), name);
+    }
 
     // Print each argument in the call
     for (i = 0, p = parms; i < arity; i++)
@@ -270,9 +274,16 @@ public:
     Printf (f_wrappers, "\n  return ");
 
     String *p_retval = this->getRetvalAccessor (type);
+
     // Printf (f_wrappers, "janet_wrap_<%s>", SwigType_str (type, ""), name);
-    Printf (f_wrappers, "janet_wrap_%s", p_retval);
-    Printf (f_wrappers, " (result);\n");
+    if (Strcmp (p_retval, "nil") == 0) {
+      Printf (f_wrappers, "janet_wrap_nil ();\n");
+    } else {
+      // This works fine for non-void, for void it has to be different...
+      Printf (f_wrappers, "janet_wrap_%s", p_retval);
+      Printf (f_wrappers, " (result);\n");
+    }
+
     Printf (f_wrappers, "}\n\n");
 
     String *fn_name = NewString (name);
@@ -332,7 +343,11 @@ JANET::getRetvalAccessor (String *s)
     return NewString ("integer");
   }
 
-  // TODO: Handle void type
+  // this should actually be nil probably?
+  if (Strcmp (s, "void") == 0) {
+    return NewString ("nil");
+  }
+
   return NewString ("pointer");
 }
 
