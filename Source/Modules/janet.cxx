@@ -80,7 +80,7 @@ public:
     Language::top (n);
 
     Printf (f_init, "  {NULL, NULL, NULL}\n");
-    Printf (f_init, "}\n");
+    Printf (f_init, "};\n");
     Printf (f_init, "\nJANET_MODULE_ENTRY (JanetTable *env) {\n");
     // TODO: Allow the module name to be a user input flag.
     Printf (f_init, "  janet_cfuns (env, \"%s\", cfuns);\n", module);
