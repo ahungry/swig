@@ -40,3 +40,9 @@ main (int argc, char *argv[])
 
   return 0;
 }
+
+some_nums_t
+get_snt_ten ()
+{
+  return TEN;
+}

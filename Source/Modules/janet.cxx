@@ -389,6 +389,15 @@ JANET::getRetvalAccessor (String *s)
 {
   if (Strcmp (s, "p.") == 0)
     {
+      printf ("Detected a pointer...\n");
+
+      return NewString ("pointer");
+    }
+
+  if (Strcmp (s, "s.") == 0)
+    {
+      printf ("Detected a struct...\n");
+
       return NewString ("pointer");
     }
 
@@ -416,8 +425,8 @@ JANET::getRetvalAccessor (String *s)
   // Default likely means a custom typedef
   // FIXME: Do we need to look up the parent types?
   // Perhaps just int is fine...
-  // return NewString ("integer");
-  return NewString ("pointer");
+  return NewString ("integer");
+  // return NewString ("pointer");
 }
 
 // Again, more hack job.  I guess we may need to add on 'struct'
