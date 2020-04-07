@@ -114,7 +114,7 @@ public:
     Node     *parent  = Getattr (n, "parentNode");
     String   *strukt  = this->getStructOrTypedef (parent);
 
-    printf ("In constructorHandler....\n");
+    // printf ("In constructorHandler....\n");
     // Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
 
     // Create a new factory function
@@ -146,7 +146,7 @@ public:
     Printf (f_wrappers, "  free (x);\n");
     Printf (f_wrappers, "}\n\n");
 
-    printf ("In destructorHandler....\n");
+    // printf ("In destructorHandler....\n");
     // Printf (f_runtime, "destructorHandler -- : %s / %s / %s", name, type, parms);
 
     // wrapperType = membervar;
@@ -163,7 +163,7 @@ public:
     SwigType *type    = Getattr (n, "type");
     ParmList *parms   = Getattr (n, "parms");
 
-    printf ("In classHandler....\n");
+    // printf ("In classHandler....\n");
     // Printf (f_runtime, "classHandler -- : %s / %s / %s", name, type, parms);
 
     // wrapperType = membervar;
@@ -210,7 +210,7 @@ public:
     Printf (f_wrappers, "  x->%s = v;\n", name);
     Printf (f_wrappers, "}\n");
 
-    printf ("In membervariableHandler....\n");
+    // printf ("In membervariableHandler....\n");
     Printf (f_wrappers, "// membervariableHandler -- : %s / %s / %s\n\n",
             name, type, parentName);
 
@@ -388,6 +388,11 @@ JANET::getAccessor (String *s1, String *s)
   if (Strcmp (s, "float") == 0)
     {
       return NewString ("janet_getnumber");
+    }
+
+  if (Strcmp (s, "char const *") == 0)
+    {
+      return NewStringf ("(%s) janet_getstring", SwigType_str (s, ""));
     }
 
   if (Strcmp (start, "p.") == 0)
