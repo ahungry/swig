@@ -3,7 +3,7 @@
 class JANET : public Language
 {
 private:
-  String *getAccessor (String *s);
+  String *getAccessor (String *s1, String *s);
   String *getRetvalAccessor (String *s);
   String *getStructOrTypedef (Node *n);
 
@@ -295,7 +295,8 @@ public:
         String *p_type   = Getattr (p, "type");
         String *p_name   = Getattr (p, "name");
         String *p_typex  = NewString(SwigType_str (p_type, ""));
-        String *accessor = this->getAccessor (p_typex);
+        // String *accessor = this->getAccessor (p_typex);
+        String *accessor = this->getAccessor (p_type, p_typex);
 
         // Pull value out of Janet args and into a local var
         Printf (f_wrappers,
@@ -370,8 +371,10 @@ public:
 // See more Janet accessors here:
 // https://janet-lang.org/capi/writing-c-functions.html
 String *
-JANET::getAccessor (String *s)
+JANET::getAccessor (String *s1, String *s)
 {
+  String *start = NewStringWithSize (s1, 2);
+
   if (Strcmp (s, "int") == 0)
     {
       return NewString ("janet_getinteger");
@@ -387,10 +390,21 @@ JANET::getAccessor (String *s)
       return NewString ("janet_getnumber");
     }
 
+  if (Strcmp (start, "p.") == 0)
+    {
+      return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+    }
+
+  if (Strcmp (start, "s.") == 0)
+    {
+      return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+    }
+
   // FIXME: Come up with an appropriate last error clause
   // return NewString ("janet_unknown");
   // return s;
-  return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+  // return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+  return NewString ("janet_getinteger");
 }
 
 // https://janet-lang.org/capi/wrapping.html
