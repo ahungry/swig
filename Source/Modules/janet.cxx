@@ -188,9 +188,15 @@ public:
     // If it was a struct like point->x we end up with point_x_get/1 and
     // also a point_x_set/2 respectively
 
-    // FIXME: For return values that are themselves struct or union, the pointer
-    // reference we need seems to be missing....
-    // Maybe we can just infer if it isn't int, its a pointer?
+    // If the strukt type is union, we have problems nesting down
+    // to get to the next level in lib-cairo at least...
+    // This is basically due to this (no good way to get an anonymous struct)
+    // as a function return value
+    // https://stackoverflow.com/questions/9561306/error-conversion-to-non-scalar-type-requested
+    if (Strcmp (strukt, "union") == 0)
+      {
+        return SWIG_OK;
+      }
 
     // Make the getter
     Printf (f_wrappers, "\n%s %s_%s_get (%s %s *x) {\n",

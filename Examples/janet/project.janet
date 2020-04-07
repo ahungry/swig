@@ -13,12 +13,12 @@
   :lflags ["-lm" "-ldl" "-lpthread"]
   :source @["trivial-math_wrap.c"])
 
-# (declare-native
-#   :name "cairo"
-#   :cflags ["-std=gnu99" "-Wall" "-Wextra" "-I/usr/include/cairo"
-#            "-I/usr/include/glib-2.0" "-I/usr/lib/glib-2.0/include"
-#            "-I/usr/lib/libffi-3.2.1/include" "-I/usr/include/pixman-1"
-#            "-I/usr/include/freetype2" "-I/usr/include/libpng16"
-#            "-I/usr/include/harfbuzz"]
-#   :lflags ["-lm" "-ldl" "-lpthread" "-lcairo"]
-#   :source @["cairo_wrap.c"])
+(declare-native
+  :name "cairo"
+  :cflags ["-std=gnu99" "-Wall" "-Wextra" "-I/usr/include/cairo"
+           "-I/usr/include/glib-2.0" "-I/usr/lib/glib-2.0/include"
+           "-I/usr/lib/libffi-3.2.1/include" "-I/usr/include/pixman-1"
+           "-I/usr/include/freetype2" "-I/usr/include/libpng16"
+           "-I/usr/include/harfbuzz"]
+  :lflags ["-lm" "-ldl" "-lpthread" "-lcairo"]
+  :source @["cairo_wrap.c"])
