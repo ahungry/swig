@@ -387,14 +387,16 @@ JANET::getAccessor (String *s)
 String *
 JANET::getRetvalAccessor (String *s)
 {
-  if (Strcmp (s, "p.") == 0)
+  String *start = NewStringWithSize (s, 2);
+
+  if (Strcmp (start, "p.") == 0)
     {
       printf ("Detected a pointer...\n");
 
       return NewString ("pointer");
     }
 
-  if (Strcmp (s, "s.") == 0)
+  if (Strcmp (start, "s.") == 0)
     {
       printf ("Detected a struct...\n");
 
