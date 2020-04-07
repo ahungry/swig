@@ -415,15 +415,11 @@ JANET::getRetvalAccessor (String *s)
 
   if (Strcmp (start, "p.") == 0)
     {
-      printf ("Detected a pointer...\n");
-
       return NewString ("pointer");
     }
 
   if (Strcmp (start, "s.") == 0)
     {
-      printf ("Detected a struct...\n");
-
       return NewString ("pointer");
     }
 
