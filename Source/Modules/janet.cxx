@@ -178,7 +178,7 @@ public:
     Node     *parent  = Getattr (n, "parentNode");
     String   *name    = Getattr (n, "sym:name");
     SwigType *type    = Getattr (n, "type");
-    // String   *typex   = NewString(SwigType_str (type, ""));
+    String   *typex   = NewString(SwigType_str (type, ""));
     ParmList *parms   = Getattr (n, "parms");
 
     String   *parentName = Getattr (parent, "sym:name");
@@ -188,15 +188,19 @@ public:
     // If it was a struct like point->x we end up with point_x_get/1 and
     // also a point_x_set/2 respectively
 
+    // FIXME: For return values that are themselves struct or union, the pointer
+    // reference we need seems to be missing....
+    // Maybe we can just infer if it isn't int, its a pointer?
+
     // Make the getter
     Printf (f_wrappers, "\n%s %s_%s_get (%s %s *x) {\n",
-            type, parentName, name, strukt, parentName);
+            typex, parentName, name, strukt, parentName);
     Printf (f_wrappers, "  return x->%s;\n", name);
     Printf (f_wrappers, "}\n");
 
     // Make the setter
     Printf (f_wrappers, "\nvoid %s_%s_set (%s %s *x, %s v) {\n",
-            parentName, name, strukt, parentName, type);
+            parentName, name, strukt, parentName, typex);
     Printf (f_wrappers, "  x->%s = v;\n", name);
     Printf (f_wrappers, "}\n");
 

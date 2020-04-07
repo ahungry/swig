@@ -38,6 +38,13 @@ main (int argc, char *argv[])
 
   free (p1);
 
+
+  point_pointed_t ppt;
+  ppt.upoint.x = 3;
+  ppt.upointed.a = 5;
+
+  printf ("ppt is: %d\n", ppt.upointed.a);
+
   return 0;
 }
 

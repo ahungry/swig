@@ -13,6 +13,17 @@ typedef enum some_nums {
     TWENTY  = 20
 } some_nums_t;
 
+typedef union _point_pointed_t point_pointed_t;
+union _point_pointed_t {
+  struct {
+    int x;
+    int y;
+  } upoint;
+  struct {
+    int a, b;
+  } upointed;
+};
+
 extern int sum_nums (int a, int b);
 extern int diff_nums (int x, int y);
 extern struct point * make_point (int x, int y);
