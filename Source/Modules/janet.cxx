@@ -289,6 +289,8 @@ public:
     Printf (f_wrappers, "{\n");
     Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
+    String *last_type = NewString ("");
+
     // TODO: Iterate each item in parm list and use the janet accessor
     for (i = 0, p = parms; i < arity; i++)
       {
@@ -298,6 +300,12 @@ public:
         // String *accessor = this->getAccessor (p_typex);
         String *accessor = this->getAccessor (p_type, p_typex);
 
+        // FIXME: Quick fix for variadic args (...)
+        if (Strcmp (p_typex, "...") == 0)
+          {
+            p_typex = NewString (last_type);
+          }
+
         // Pull value out of Janet args and into a local var
         Printf (f_wrappers,
                 "  %s %s = %s (argv, %d);\n",
@@ -305,6 +313,8 @@ public:
                 p_name,
                 accessor,
                 i);
+
+        last_type = NewString (p_typex);
 
         p = nextSibling (p);
       }
@@ -317,6 +327,8 @@ public:
               SwigType_str (type, ""), name);
     }
 
+    last_type = NewString ("");
+
     // Print each argument in the call
     for (i = 0, p = parms; i < arity; i++)
       {
@@ -324,11 +336,19 @@ public:
         String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
         String *p_typex  = NewString (SwigType_str (p_type, ""));
 
+        // FIXME: Quick fix for variadic args (...)
+        if (Strcmp (p_typex, "...") == 0)
+          {
+            p_typex = NewString (last_type);
+          }
+
         Printf (f_wrappers, "(%s) %s", p_typex, p_name);
 
         if (i + 1 < arity) {
           Printf (f_wrappers, ", ");
         }
+
+        last_type = NewString (p_typex);
 
         p = nextSibling (p);
       }

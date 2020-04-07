@@ -29,9 +29,9 @@
 #   sqlite3 - ?
 #   libcurl - variable arity issue (...)
 
-# (declare-native
-#  :name "curl"
-#  :cflags ["-std=gnu99" "-Wall" "-Wextra"
-#           ]
-#  :lflags ["-lm" "-ldl" "-lpthread" "-lcurl"]
-#  :source @["curl_wrap.c"])
+(declare-native
+ :name "curl"
+ :cflags ["-std=gnu99" "-Wall" "-Wextra"
+          ]
+ :lflags ["-lm" "-ldl" "-lpthread" "-lcurl"]
+ :source @["curl_wrap.c"])
