@@ -293,8 +293,8 @@ public:
     for (i = 0, p = parms; i < arity; i++)
       {
         String *p_type   = Getattr (p, "type");
-        String *p_name   = Getattr (p, "name");
-        String *p_typex  = NewString(SwigType_str (p_type, ""));
+        String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
+        String *p_typex  = NewString (SwigType_str (p_type, ""));
         // String *accessor = this->getAccessor (p_typex);
         String *accessor = this->getAccessor (p_type, p_typex);
 
@@ -321,8 +321,8 @@ public:
     for (i = 0, p = parms; i < arity; i++)
       {
         String *p_type   = Getattr (p, "type");
-        String *p_name   = Getattr (p, "name");
-        String *p_typex  = NewString(SwigType_str (p_type, ""));
+        String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
+        String *p_typex  = NewString (SwigType_str (p_type, ""));
 
         Printf (f_wrappers, "(%s) %s", p_typex, p_name);
 
