@@ -5,6 +5,7 @@ class JANET : public Language
 private:
   String *getAccessor (String *s);
   String *getRetvalAccessor (String *s);
+  String *getStructOrTypedef (Node *n);
 
 protected:
   File *f_begin;
@@ -110,12 +111,16 @@ public:
     SwigType *type    = Getattr (n, "type");
     ParmList *parms   = Getattr (n, "parms");
 
+    Node     *parent  = Getattr (n, "parentNode");
+    String   *strukt  = this->getStructOrTypedef (parent);
+
     printf ("In constructorHandler....\n");
     // Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
 
     // Create a new factory function
-    Printf (f_wrappers, "\nstruct %s * new_%s () {\n", name, name);
-    Printf (f_wrappers, "  struct %s *x = malloc (sizeof (struct %s));\n\n", name, name);
+    Printf (f_wrappers, "\n%s %s * new_%s () {\n", strukt, name, name);
+    Printf (f_wrappers, "  %s %s *x = malloc (sizeof (%s %s));\n\n",
+            strukt, name, strukt, name);
     Printf (f_wrappers, "  return x;\n");
     Printf (f_wrappers, "}\n\n");
 
@@ -133,8 +138,11 @@ public:
     SwigType *type    = Getattr (n, "type");
     ParmList *parms   = Getattr (n, "parms");
 
+    Node     *parent  = Getattr (n, "parentNode");
+    String   *strukt  = this->getStructOrTypedef (parent);
+
     // Create a new delete function
-    Printf (f_wrappers, "\nvoid delete_%s (struct %s *x) {\n", name, name);
+    Printf (f_wrappers, "\nvoid delete_%s (%s %s *x) {\n", name, strukt, name);
     Printf (f_wrappers, "  free (x);\n");
     Printf (f_wrappers, "}\n\n");
 
@@ -173,23 +181,22 @@ public:
     // String   *typex   = NewString(SwigType_str (type, ""));
     ParmList *parms   = Getattr (n, "parms");
 
-    String *parentName  = Getattr (parent, "sym:name");
-    String *parentType  = Getattr (parent, "type");
-    // String *parentTypex = NewString(SwigType_str (parentType, ""));
+    String   *parentName = Getattr (parent, "sym:name");
+    String   *strukt     = this->getStructOrTypedef (parent);
 
     // we need to define a get and a set for these...
     // If it was a struct like point->x we end up with point_x_get/1 and
     // also a point_x_set/2 respectively
 
     // Make the getter
-    Printf (f_wrappers, "\n%s %s_%s_get (struct %s *x) {\n",
-            type, parentName, name, parentName);
+    Printf (f_wrappers, "\n%s %s_%s_get (%s %s *x) {\n",
+            type, parentName, name, strukt, parentName);
     Printf (f_wrappers, "  return x->%s;\n", name);
     Printf (f_wrappers, "}\n");
 
     // Make the setter
-    Printf (f_wrappers, "\nvoid %s_%s_set (struct %s *x, %s v) {\n",
-            parentName, name, parentName, type);
+    Printf (f_wrappers, "\nvoid %s_%s_set (%s %s *x, %s v) {\n",
+            parentName, name, strukt, parentName, type);
     Printf (f_wrappers, "  x->%s = v;\n", name);
     Printf (f_wrappers, "}\n");
 
@@ -219,7 +226,7 @@ public:
     Parm *p;
 
     Printf (f_wrappers, "static Janet\n");
-    Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
+    Printf (f_wrappers, "const_%s_wrapped (int32_t argc, const Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
     Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
@@ -247,7 +254,7 @@ public:
     String *fn_name = NewString (name);
     Replaceall (fn_name, "_", "-");
 
-    Printf (f_init, "{\"%s\", %s_wrapped, \"Return the constant value.\"},",
+    Printf (f_init, "{\"const-%s\", const_%s_wrapped, \"Return the constant value.\"},",
             fn_name,
             name);
 
@@ -355,17 +362,20 @@ public:
 String *
 JANET::getAccessor (String *s)
 {
-  if (Strcmp (s, "int") == 0) {
-    return NewString ("janet_getinteger");
-  }
+  if (Strcmp (s, "int") == 0)
+    {
+      return NewString ("janet_getinteger");
+    }
 
-  if (Strcmp (s, "double") == 0) {
-    return NewString ("janet_getnumber");
-  }
+  if (Strcmp (s, "double") == 0)
+    {
+      return NewString ("janet_getnumber");
+    }
 
-  if (Strcmp (s, "float") == 0) {
-    return NewString ("janet_getnumber");
-  }
+  if (Strcmp (s, "float") == 0)
+    {
+      return NewString ("janet_getnumber");
+    }
 
   // FIXME: Come up with an appropriate last error clause
   // return NewString ("janet_unknown");
@@ -377,28 +387,53 @@ JANET::getAccessor (String *s)
 String *
 JANET::getRetvalAccessor (String *s)
 {
-  if (Strcmp (s, "p.") == 0) {
-    return NewString ("pointer");
-  }
+  if (Strcmp (s, "p.") == 0)
+    {
+      return NewString ("pointer");
+    }
 
-  if (Strcmp (s, "double") == 0) {
-    return NewString ("number");
-  }
+  if (Strcmp (s, "double") == 0)
+    {
+      return NewString ("number");
+    }
 
-  if (Strcmp (s, "float") == 0) {
-    return NewString ("number");
-  }
+  if (Strcmp (s, "float") == 0)
+    {
+      return NewString ("number");
+    }
 
-  if (Strcmp (s, "int") == 0) {
-    return NewString ("integer");
-  }
+  if (Strcmp (s, "int") == 0)
+    {
+      return NewString ("integer");
+    }
 
   // this should actually be nil probably?
-  if (Strcmp (s, "void") == 0) {
-    return NewString ("nil");
-  }
+  if (Strcmp (s, "void") == 0)
+    {
+      return NewString ("nil");
+    }
 
+  // Default likely means a custom typedef
+  // FIXME: Do we need to look up the parent types?
+  // Perhaps just int is fine...
+  // return NewString ("integer");
   return NewString ("pointer");
+}
+
+// Again, more hack job.  I guess we may need to add on 'struct'
+// qualifier when it is *not* a typedef, else nothing.
+String *
+JANET::getStructOrTypedef (Node *n)
+{
+  String *kind   = Getattr (n, "kind");
+  String *tdname = Getattr (n, "tdname");
+
+  if (!tdname || Strcmp (tdname, "") == 0)
+    {
+      return NewString (kind);
+    }
+
+  return NewString ("");
 }
 
 extern "C" Language *

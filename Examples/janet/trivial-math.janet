@@ -30,3 +30,8 @@
 # Ok, not great that its still callable, but what can we do?
 (pp "Sum after deletion...")
 (pp (tm/sum-point alt-point))
+
+(pp "Test out typedef struct")
+(def point-typedef (tm/new-pointed-t))
+(tm/pointed-t-a-set point-typedef 44 )
+(pp (tm/pointed-t-a-get point-typedef))
