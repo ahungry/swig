@@ -204,6 +204,56 @@ public:
     return SWIG_OK;
   }
 
+  virtual int constantWrapper (Node *n)
+  {
+    String   *name    = Getattr (n, "sym:name");
+    SwigType *type    = Getattr (n, "type");
+    ParmList *parms   = Getattr (n, "parms");
+    String   *parmstr = ParmList_str_defaultargs (parms); // to string
+    String   *func    = SwigType_str (type, NewStringf ("%s(%s)", name, parmstr));
+    String   *action  = Getattr (n, "wrap:action");
+    // int       arity   = ParmList_numrequired (parms);
+    int       arity   = 0;
+
+    int i;
+    Parm *p;
+
+    Printf (f_wrappers, "static Janet\n");
+    Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
+    Printf (f_wrappers, "{\n");
+    Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
+
+    // Evaluate the result
+    Printf (f_wrappers, "\n  %s result = %s;\n",
+            SwigType_str (type, ""), name);
+
+    // Need to do dynamic return values
+    // https://janet-lang.org/capi/wrapping.html
+    Printf (f_wrappers, "\n  return ");
+
+    String *p_retval = this->getRetvalAccessor (type);
+
+    // Printf (f_wrappers, "janet_wrap_<%s>", SwigType_str (type, ""), name);
+    if (Strcmp (p_retval, "nil") == 0) {
+      Printf (f_wrappers, "janet_wrap_nil ();\n");
+    } else {
+      // This works fine for non-void, for void it has to be different...
+      Printf (f_wrappers, "janet_wrap_%s", p_retval);
+      Printf (f_wrappers, " (result);\n");
+    }
+
+    Printf (f_wrappers, "}\n\n");
+
+    String *fn_name = NewString (name);
+    Replaceall (fn_name, "_", "-");
+
+    Printf (f_init, "{\"%s\", %s_wrapped, \"Return the constant value.\"},",
+            fn_name,
+            name);
+
+    return SWIG_OK;
+  }
+
   virtual int functionWrapper (Node *n)
   {
     String   *name    = Getattr (n, "sym:name");
