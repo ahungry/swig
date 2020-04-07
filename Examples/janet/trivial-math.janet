@@ -35,3 +35,7 @@
 (def point-typedef (tm/new-pointed-t))
 (tm/pointed-t-a-set point-typedef 44 )
 (pp (tm/pointed-t-a-get point-typedef))
+
+(pp "const test (enum)")
+(pp (tm/const-TEN))
+(pp (tm/const-TWENTY))

@@ -8,6 +8,11 @@ typedef struct pointed {
   int b;
 } pointed_t;
 
+typedef enum some_nums {
+    TEN  = 10,
+    TWENTY  = 20
+} some_nums_t;
+
 extern int sum_nums (int a, int b);
 extern int diff_nums (int x, int y);
 extern struct point * make_point (int x, int y);
