@@ -1,7 +1,7 @@
 (use build/curl)
 
 (def curl (curl-easy-init))
-(def slist (new-curl-slist))
+(def slist (new-curl-slist-null))
 
 (curl-easy-setopt-string curl (const-CURLOPT-URL) "http://example.com")
 
