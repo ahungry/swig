@@ -425,6 +425,24 @@ JANET::getAccessor (String *s1, String *s)
       return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
     }
 
+  printf ("getAccessor default went to this: \n");
+  Printf (stdout, "  ---  %s\n", s1);
+  Printf (stdout, "  ---  %s\n", s);
+
+  if (Strcmp (s, "int") == 0 ||
+      Strcmp (s, "unsigned int") == 0 ||
+      Strcmp (s, "long") == 0)
+    {
+      return NewString ("janet_getinteger");
+    }
+
+  String *maybeCustomStruct = NewStringWithSize (s1, 6);
+
+  if (Strcmp (maybeCustomStruct, "struct") == 0)
+    {
+      return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+    }
+
   // FIXME: Come up with an appropriate last error clause
   // return NewString ("janet_unknown");
   // return s;
@@ -458,16 +476,27 @@ JANET::getRetvalAccessor (String *s)
       return NewString ("number");
     }
 
-  if (Strcmp (s, "int") == 0)
+  if (Strcmp (s, "int") == 0 ||
+      Strcmp (s, "unsigned int") == 0 ||
+      Strcmp (s, "long") == 0)
     {
       return NewString ("integer");
     }
 
-  // this should actually be nil probably?
   if (Strcmp (s, "void") == 0)
     {
       return NewString ("nil");
     }
+
+  String *maybeCustomStruct = NewStringWithSize (s, 6);
+
+  if (Strcmp (maybeCustomStruct, "struct") == 0)
+    {
+      return NewString ("pointer");
+    }
+
+  printf ("getRetvalAccessor default went to this: \n");
+  Printf (stdout, "  ---  %s\n", s);
 
   // Default likely means a custom typedef
   // FIXME: Do we need to look up the parent types?
