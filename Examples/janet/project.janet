@@ -42,3 +42,12 @@
 #            "-I/usr/include/fuse" "-D_FILE_OFFSET_BITS=64"]
 #   :lflags ["-lm" "-ldl" "-lpthread" "-lfuse"]
 #   :source @["fuse_wrap.c"])
+
+# Fuse has problems with array syntax and some other stuff
+(declare-native
+  :name "iup"
+  :cflags ["-std=gnu99" "-Wall" "-Wextra"
+           "-I/usr/include/iup"
+          ]
+  :lflags ["-lm" "-ldl" "-lpthread" "-liup" "-liupimglib" ]
+  :source @["iup_wrap.c"])

@@ -39,3 +39,8 @@
 (pp "const test (enum)")
 (pp (tm/const-TEN))
 (pp (tm/const-TWENTY))
+
+(def hmm (tm/new--point-pointed-t-upoint 1))
+(tm/-point-pointed-t-upoint-x-set hmm 32)
+
+(pp (tm/-point-pointed-t-upoint-x-get hmm))
