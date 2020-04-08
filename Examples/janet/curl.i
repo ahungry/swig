@@ -12,9 +12,17 @@
   {
     return curl_easy_setopt (curl, option, s);
   }
+
+  CURL_EXTERN CURLcode curl_easy_setopt_pointer (CURL *curl, CURLoption option, struct curl_slist *);
+
+  CURLcode curl_easy_setopt_pointer (CURL *curl, CURLoption option, struct curl_slist * s)
+  {
+    return curl_easy_setopt (curl, option, s);
+  }
   %}
 
 %include "/usr/include/curl/curl.h"
 %include "/usr/include/curl/easy.h"
 
 CURL_EXTERN CURLcode curl_easy_setopt_string (CURL *curl, CURLoption option, const char * s);
+CURL_EXTERN CURLcode curl_easy_setopt_pointer (CURL *curl, CURLoption option, struct curl_slist * s);
