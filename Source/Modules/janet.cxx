@@ -320,7 +320,8 @@ public:
     Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
 
-    String *last_type = NewString ("");
+    String *last_type     = NewString ("");
+    String *last_accessor = NewString ("");
 
     if (in_constructor)
       {
@@ -345,6 +346,7 @@ public:
             if (Strcmp (p_typex, "...") == 0)
               {
                 p_typex = NewString (last_type);
+                accessor = NewString (last_accessor);
               }
 
             // Pull value out of Janet args and into a local var
@@ -355,7 +357,8 @@ public:
                     accessor,
                     i);
 
-            last_type = NewString (p_typex);
+            last_type     = NewString (p_typex);
+            last_accessor = NewString (accessor);
 
             p = nextSibling (p);
           }
