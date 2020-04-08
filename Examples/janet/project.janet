@@ -24,14 +24,21 @@
   :lflags ["-lm" "-ldl" "-lpthread" "-lcairo"]
   :source @["cairo_wrap.c"])
 
+# This has worked to get a url, follow a 302 and retrieve data over 302
+(declare-native
+ :name "curl"
+ :cflags ["-std=gnu99" "-Wall" "-Wextra"]
+ :lflags ["-lm" "-ldl" "-lpthread" "-lcurl"]
+ :source @["curl_wrap.c"])
+
 # Tried but doesn't quite work:
 #   fuse    - function pointer issue
 #   sqlite3 - ?
-#   libcurl - variable arity issue (...)
 
-(declare-native
- :name "curl"
- :cflags ["-std=gnu99" "-Wall" "-Wextra"
-          ]
- :lflags ["-lm" "-ldl" "-lpthread" "-lcurl"]
- :source @["curl_wrap.c"])
+# Fuse has problems with array syntax and some other stuff
+# (declare-native
+#   :name "fuse"
+#   :cflags ["-std=gnu99" "-Wall" "-Wextra"
+#            "-I/usr/include/fuse" "-D_FILE_OFFSET_BITS=64"]
+#   :lflags ["-lm" "-ldl" "-lpthread" "-lfuse"]
+#   :source @["fuse_wrap.c"])
