@@ -3,6 +3,7 @@
 static int in_class = 0;
 static int in_constructor = 0;
 static int in_destructor = 0;
+static int in_special_setter = 0;
 
 class JANET : public Language
 {
@@ -224,10 +225,16 @@ public:
     if (Strcmp (strukt, "union") == 0 ||
         Strcmp (strukt, "struct") == 0)
       {
+        in_special_setter = 1;
+
         // This is working around struct<anonymous> to struct<anonymous> compile complaints
         Printf (f_inline_getter, "\n  %s * result;\n", typex);
         Printf (f_inline_getter, "  result = (%s *)& ((arg_0)->%s);\n", typex, name);
 
+        // Printf (f_inline_setter, "\n  arg_0->%s = arg_1;\n", name);
+        Printf (f_inline_setter, "  %s *ptr;\n\n", typex);
+        Printf (f_inline_setter, "  ptr = (%s *) &arg_1;\n", typex);
+        Printf (f_inline_setter, "  arg_1 = *ptr;\n");
         Printf (f_inline_setter, "\n  arg_0->%s = arg_1;\n", name);
       }
     else
@@ -365,6 +372,7 @@ public:
           {
             Dump (f_inline_setter, f_wrappers);
             f_inline_setter = NewString ("");
+            in_special_setter = 0;
           }
 
         if (this->isGetter (name))
@@ -500,7 +508,15 @@ JANET::getAccessor (String *s1, String *s)
 
   if (Strcmp (maybeCustomStruct, "struct") == 0)
     {
-      return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+      if (in_special_setter)
+        {
+          return NewStringf ("*(%s *) janet_getpointer", SwigType_str (s, ""));
+        }
+      else
+        {
+          return NewStringf ("(%s) janet_getpointer", SwigType_str (s, ""));
+
+        }
     }
 
   // FIXME: Come up with an appropriate last error clause
