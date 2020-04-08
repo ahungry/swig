@@ -1,11 +1,18 @@
 #include "swigmod.h"
 
+static int in_class = 0;
+static int in_constructor = 0;
+static int in_destructor = 0;
+
 class JANET : public Language
 {
 private:
   String *getAccessor (String *s1, String *s);
   String *getRetvalAccessor (String *s);
   String *getStructOrTypedef (Node *n);
+  String *lastFour (String *s);
+  int isSetter (String *s);
+  int isGetter (String *s);
 
 protected:
   File *f_begin;
@@ -13,6 +20,9 @@ protected:
   File *f_header;
   File *f_wrappers;
   File *f_init;
+  File *f_inline_class;
+  File *f_inline_getter;
+  File *f_inline_setter;
 
 public:
 
@@ -61,12 +71,20 @@ public:
     f_header   = NewString ("");
     f_wrappers = NewString ("");
 
+    f_inline_class  = NewString ("");
+    f_inline_getter = NewString ("");
+    f_inline_setter = NewString ("");
+
     // Register file targets with the SWIG file handler
     Swig_register_filebyname ("begin"   , f_begin);
     Swig_register_filebyname ("header"  , f_header);
     Swig_register_filebyname ("wrapper" , f_wrappers);
     Swig_register_filebyname ("runtime" , f_runtime);
     Swig_register_filebyname ("init"    , f_init);
+
+    Swig_register_filebyname ("inline_class", f_inline_class);
+    Swig_register_filebyname ("inline_getter", f_inline_getter);
+    Swig_register_filebyname ("inline_setter", f_inline_setter);
 
     // Output module init code
     Swig_banner (f_begin);
@@ -98,6 +116,11 @@ public:
     Delete (f_header);
     Delete (f_wrappers);
     Delete (f_init);
+
+    Delete (f_inline_class);
+    Delete (f_inline_getter);
+    Delete (f_inline_setter);
+
     // Why is this line in the guide? Function doesn't exist.
     // Close (f_begin);
     Delete (f_begin);
@@ -118,14 +141,20 @@ public:
     // Printf (f_runtime, "constructorHandler -- : %s / %s / %s", name, type, parms);
 
     // Create a new factory function
-    Printf (f_wrappers, "\n%s %s * new_%s () {\n", strukt, name, name);
-    Printf (f_wrappers, "  %s %s *x = malloc (sizeof (%s %s));\n\n",
-            strukt, name, strukt, name);
-    Printf (f_wrappers, "  return x;\n");
-    Printf (f_wrappers, "}\n\n");
+    // Printf (f_inline_class, "\n%s %s * new_%s () {\n", strukt, name, name);
+    Printf (f_inline_class, "  %s %s *result;\n\n", strukt, name);
+    Printf (f_inline_class, "  if (with_malloc)\n    {\n");
+    Printf (f_inline_class, "      result = malloc (sizeof (%s %s));\n", strukt, name);
+    Printf (f_inline_class, "    }\n  else\n    {\n");
+    Printf (f_inline_class, "      result = NULL;\n", strukt, name);
+    Printf (f_inline_class, "    }\n ");
+    // Printf (f_inline_class, "  return x;\n");
+    // Printf (f_inline_class, "}\n\n");
 
     // wrapperType = membervar;
+    in_constructor = 1;
     Language::constructorHandler(n);
+    in_constructor = 0;
     // wrapperType = standard;
 
     return SWIG_OK;
@@ -142,9 +171,9 @@ public:
     String   *strukt  = this->getStructOrTypedef (parent);
 
     // Create a new delete function
-    Printf (f_wrappers, "\nvoid delete_%s (%s %s *x) {\n", name, strukt, name);
-    Printf (f_wrappers, "  free (x);\n");
-    Printf (f_wrappers, "}\n\n");
+    // Printf (f_inline_class, "\nvoid delete_%s (%s %s *x) {\n", name, strukt, name);
+    Printf (f_inline_class, "  free (arg_0);\n");
+    //Printf (f_inline_class, "}\n\n");
 
     // printf ("In destructorHandler....\n");
     // Printf (f_runtime, "destructorHandler -- : %s / %s / %s", name, type, parms);
@@ -167,7 +196,11 @@ public:
     // Printf (f_runtime, "classHandler -- : %s / %s / %s", name, type, parms);
 
     // wrapperType = membervar;
+    in_class = 1;
+
     Language::classHandler(n);
+
+    in_class = 0;
     // wrapperType = standard;
 
     return SWIG_OK;
@@ -195,6 +228,8 @@ public:
     // https://stackoverflow.com/questions/9561306/error-conversion-to-non-scalar-type-requested
     // FIXME: This needs to be fixed to work and not just skip
     // guile.cxx likely has a working sample/implementation of how to do this.
+
+    // This probably needs to do pointer coercion like in guile.cxx
     if (Strcmp (strukt, "union") == 0 ||
         Strcmp (strukt, "struct") == 0)
       {
@@ -202,20 +237,21 @@ public:
       }
 
     // Make the getter
-    Printf (f_wrappers, "\n%s %s_%s_get (%s %s *x) {\n",
-            typex, parentName, name, strukt, parentName);
-    Printf (f_wrappers, "  return x->%s;\n", name);
-    Printf (f_wrappers, "}\n");
+    // Printf (f_inline_getter, "\n%s %s_%s_get (%s %s *x) {\n",
+    //         typex, parentName, name, strukt, parentName);
+    Printf (f_inline_getter, "\n  %s result;\n", typex);
+    Printf (f_inline_getter, "  result = arg_0->%s;\n", name);
+    // Printf (f_inline_getter, "}\n");
 
     // Make the setter
-    Printf (f_wrappers, "\nvoid %s_%s_set (%s %s *x, %s v) {\n",
-            parentName, name, strukt, parentName, typex);
-    Printf (f_wrappers, "  x->%s = v;\n", name);
-    Printf (f_wrappers, "}\n");
+    // Printf (f_inline_setter, "\nvoid %s_%s_set (%s %s *x, %s v) {\n",
+    //         parentName, name, strukt, parentName, typex);
+    Printf (f_inline_setter, "\n  arg_0->%s = arg_1;\n", name);
+    // Printf (f_inline_setter, "}\n");
 
     // printf ("In membervariableHandler....\n");
-    Printf (f_wrappers, "// membervariableHandler -- : %s / %s / %s\n\n",
-            name, type, parentName);
+    // Printf (f_inline_class, "// membervariableHandler -- : %s / %s / %s\n\n",
+    //         name, type, parentName);
 
     // wrapperType = membervar;
     Language::membervariableHandler(n);
@@ -290,75 +326,110 @@ public:
     Printf (f_wrappers, "static Janet\n");
     Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
-    Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
     String *last_type = NewString ("");
 
-    // TODO: Iterate each item in parm list and use the janet accessor
-    for (i = 0, p = parms; i < arity; i++)
+    if (in_constructor)
       {
-        String *p_type   = Getattr (p, "type");
-        String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
-        String *p_typex  = NewString (SwigType_str (p_type, ""));
-        // String *accessor = this->getAccessor (p_typex);
-        String *accessor = this->getAccessor (p_type, p_typex);
-
-        // FIXME: Quick fix for variadic args (...)
-        if (Strcmp (p_typex, "...") == 0)
-          {
-            p_typex = NewString (last_type);
-          }
-
-        // Pull value out of Janet args and into a local var
-        Printf (f_wrappers,
-                "  %s %s = %s (argv, %d);\n",
-                p_typex,
-                p_name,
-                accessor,
-                i);
-
-        last_type = NewString (p_typex);
-
-        p = nextSibling (p);
+        Printf (f_wrappers, "  janet_fixarity (argc, 1);\n\n");
+        Printf (f_wrappers, "  int with_malloc = janet_getinteger (argv, 0);\n\n");
       }
+    else
+      {
+        Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
-    // Evaluate the result
-    if (Strcmp (type, "void") == 0) {
-      Printf (f_wrappers, "\n  %s (", name);
-    } else {
-      Printf (f_wrappers, "\n  %s result = %s (",
-              SwigType_str (type, ""), name);
+        // TODO: Iterate each item in parm list and use the janet accessor
+        for (i = 0, p = parms; i < arity; i++)
+          {
+            String *p_type   = Getattr (p, "type");
+            // String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
+            String *p_name   = NewStringf ("arg_%d", i);
+            String *p_typex  = NewString (SwigType_str (p_type, ""));
+            // String *accessor = this->getAccessor (p_typex);
+            String *accessor = this->getAccessor (p_type, p_typex);
+
+            // FIXME: Quick fix for variadic args (...)
+            if (Strcmp (p_typex, "...") == 0)
+              {
+                p_typex = NewString (last_type);
+              }
+
+            // Pull value out of Janet args and into a local var
+            Printf (f_wrappers,
+                    "  %s %s = %s (argv, %d);\n",
+                    p_typex,
+                    p_name,
+                    accessor,
+                    i);
+
+            last_type = NewString (p_typex);
+
+            p = nextSibling (p);
+          }
     }
 
-    last_type = NewString ("");
-
-    // Print each argument in the call
-    for (i = 0, p = parms; i < arity; i++)
+    // Calling the dynamic getter/setter doesn't work well because
+    // of struct<anonymous> incompatability with struct<anonymous>
+    if (in_class)
       {
-        String *p_type   = Getattr (p, "type");
-        String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
-        String *p_typex  = NewString (SwigType_str (p_type, ""));
+        Dump (f_inline_class, f_wrappers);
+        f_inline_class = NewString ("");
 
-        // FIXME: Quick fix for variadic args (...)
-        if (Strcmp (p_typex, "...") == 0)
+        if (this->isSetter (name))
           {
-            p_typex = NewString (last_type);
+            Dump (f_inline_setter, f_wrappers);
+            f_inline_setter = NewString ("");
           }
 
-        Printf (f_wrappers, "(%s) %s", p_typex, p_name);
+        if (this->isGetter (name))
+          {
+            Dump (f_inline_getter, f_wrappers);
+            f_inline_getter = NewString ("");
+          }
+      }
+    else
+      {
+        // Evaluate the result
 
-        if (i + 1 < arity) {
-          Printf (f_wrappers, ", ");
+        if (Strcmp (type, "void") == 0) {
+          Printf (f_wrappers, "\n  %s (", name);
+        } else {
+          Printf (f_wrappers, "\n  %s result = %s (",
+                  SwigType_str (type, ""), name);
         }
 
-        last_type = NewString (p_typex);
+        last_type = NewString ("");
 
-        p = nextSibling (p);
+        // Print each argument in the call
+        for (i = 0, p = parms; i < arity; i++)
+          {
+            String *p_type   = Getattr (p, "type");
+            // String *p_name   = NewStringf ("%s_%d", Getattr (p, "name"), i);
+            String *p_name   = NewStringf ("arg_%d", i);
+            String *p_typex  = NewString (SwigType_str (p_type, ""));
+
+            // FIXME: Quick fix for variadic args (...)
+            if (Strcmp (p_typex, "...") == 0)
+              {
+                p_typex = NewString (last_type);
+              }
+
+            Printf (f_wrappers, "(%s) %s", p_typex, p_name);
+
+            if (i + 1 < arity) {
+              Printf (f_wrappers, ", ");
+            }
+
+            last_type = NewString (p_typex);
+
+            p = nextSibling (p);
+          }
+
+        // End the call
+        Printf (f_wrappers, ");\n",
+                SwigType_str (type, ""), name);
+
       }
-
-    // End the call
-    Printf (f_wrappers, ");\n",
-            SwigType_str (type, ""), name);
 
     // Need to do dynamic return values
     // https://janet-lang.org/capi/wrapping.html
@@ -522,6 +593,27 @@ JANET::getStructOrTypedef (Node *n)
     }
 
   return NewString ("");
+}
+
+String *
+JANET::lastFour (String *s)
+{
+  char *cname = Char (s);
+  int len = strlen (cname);
+
+  return NewString (cname + len - 4);
+}
+
+int
+JANET::isSetter (String *s)
+{
+  return Strcmp (this->lastFour (s), "_set") == 0;
+}
+
+int
+JANET::isGetter (String *s)
+{
+  return Strcmp (this->lastFour (s), "_get") == 0;
 }
 
 extern "C" Language *

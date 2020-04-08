@@ -11,7 +11,7 @@
 
 (pp (tm/sum-point point))
 
-(def alt-point (tm/new-point))
+(def alt-point (tm/new-point 1))
 
 (tm/point-x-set alt-point 20)
 (tm/point-y-set alt-point 200)
@@ -32,7 +32,7 @@
 (pp (tm/sum-point alt-point))
 
 (pp "Test out typedef struct")
-(def point-typedef (tm/new-pointed-t))
+(def point-typedef (tm/new-pointed-t 1))
 (tm/pointed-t-a-set point-typedef 44 )
 (pp (tm/pointed-t-a-get point-typedef))
 
