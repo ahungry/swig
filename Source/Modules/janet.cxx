@@ -193,7 +193,10 @@ public:
     // This is basically due to this (no good way to get an anonymous struct)
     // as a function return value
     // https://stackoverflow.com/questions/9561306/error-conversion-to-non-scalar-type-requested
-    if (Strcmp (strukt, "union") == 0)
+    // FIXME: This needs to be fixed to work and not just skip
+    // guile.cxx likely has a working sample/implementation of how to do this.
+    if (Strcmp (strukt, "union") == 0 ||
+        Strcmp (strukt, "struct") == 0)
       {
         return SWIG_OK;
       }
