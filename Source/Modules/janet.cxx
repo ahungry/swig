@@ -217,45 +217,31 @@ public:
     String   *parentName = Getattr (parent, "sym:name");
     String   *strukt     = this->getStructOrTypedef (parent);
 
-    // we need to define a get and a set for these...
-    // If it was a struct like point->x we end up with point_x_get/1 and
-    // also a point_x_set/2 respectively
+    // Do we need to empty them out so only the last one pre-print is kept?
+    f_inline_getter = NewString ("");
+    f_inline_setter = NewString ("");
 
-    // If the strukt type is union, we have problems nesting down
-    // to get to the next level in lib-cairo at least...
-    // This is basically due to this (no good way to get an anonymous struct)
-    // as a function return value
-    // https://stackoverflow.com/questions/9561306/error-conversion-to-non-scalar-type-requested
-    // FIXME: This needs to be fixed to work and not just skip
-    // guile.cxx likely has a working sample/implementation of how to do this.
-
-    // This probably needs to do pointer coercion like in guile.cxx
     if (Strcmp (strukt, "union") == 0 ||
         Strcmp (strukt, "struct") == 0)
       {
-        return SWIG_OK;
+        // This is working around struct<anonymous> to struct<anonymous> compile complaints
+        Printf (f_inline_getter, "\n  %s * result;\n", typex);
+        Printf (f_inline_getter, "  result = (%s *)& ((arg_0)->%s);\n", typex, name);
+
+        Printf (f_inline_setter, "\n  arg_0->%s = arg_1;\n", name);
+      }
+    else
+      {
+        // Make the getter
+        Printf (f_inline_getter, "\n  %s result;\n", typex);
+        Printf (f_inline_getter, "  result = arg_0->%s;\n", name);
+
+        // Make the setter
+        Printf (f_inline_setter, "\n // %s\n", name);
+        Printf (f_inline_setter, "\n  arg_0->%s = arg_1;\n", name);
       }
 
-    // Make the getter
-    // Printf (f_inline_getter, "\n%s %s_%s_get (%s %s *x) {\n",
-    //         typex, parentName, name, strukt, parentName);
-    Printf (f_inline_getter, "\n  %s result;\n", typex);
-    Printf (f_inline_getter, "  result = arg_0->%s;\n", name);
-    // Printf (f_inline_getter, "}\n");
-
-    // Make the setter
-    // Printf (f_inline_setter, "\nvoid %s_%s_set (%s %s *x, %s v) {\n",
-    //         parentName, name, strukt, parentName, typex);
-    Printf (f_inline_setter, "\n  arg_0->%s = arg_1;\n", name);
-    // Printf (f_inline_setter, "}\n");
-
-    // printf ("In membervariableHandler....\n");
-    // Printf (f_inline_class, "// membervariableHandler -- : %s / %s / %s\n\n",
-    //         name, type, parentName);
-
-    // wrapperType = membervar;
     Language::membervariableHandler(n);
-    // wrapperType = standard;
 
     return SWIG_OK;
   }
