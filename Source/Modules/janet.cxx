@@ -268,7 +268,7 @@ public:
     Parm *p;
 
     Printf (f_wrappers, "static Janet\n");
-    Printf (f_wrappers, "const_%s_wrapped (int32_t argc, const Janet *argv)\n", name);
+    Printf (f_wrappers, "const_%s_wrapped (int32_t argc, Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
     Printf (f_wrappers, "  janet_fixarity (argc, %d);\n\n", arity);
 
