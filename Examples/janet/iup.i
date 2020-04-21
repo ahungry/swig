@@ -21,6 +21,7 @@
 
 %include "/usr/include/iup/iup_export.h"
 %include "/usr/include/iup/iup.h"
+%include "/usr/include/iup/iupdraw.h"
 
 extern int * int_ptr ();
 extern char *** char_ptr ();
