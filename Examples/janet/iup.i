@@ -3,6 +3,8 @@
 %{
   /* Put header files here or function declarations like below */
   #include <iup.h>
+  #include <iupdraw.h>
+  #include <iupim.h>
 
   int * int_ptr ()
   {
