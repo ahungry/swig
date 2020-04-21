@@ -154,8 +154,9 @@ IupGetAttributeAsString_wrapped (int32_t argc, Janet *argv)
   char const * arg_1 = (char const *) janet_getstring (argv, 1);
 
   char * result = IupGetAttribute ((Ihandle *) arg_0, (char const *) arg_1);
+  const uint8_t *s = janet_string ((unsigned char *) result, strlen (result));
 
-  return janet_wrap_string (result);
+  return janet_wrap_string (s);
 }
 // END Non-Swig hand generation stuff
 
