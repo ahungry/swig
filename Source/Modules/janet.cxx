@@ -317,7 +317,7 @@ public:
     Parm *p;
 
     Printf (f_wrappers, "static Janet\n");
-    Printf (f_wrappers, "%s_wrapped (int32_t argc, const Janet *argv)\n", name);
+    Printf (f_wrappers, "%s_wrapped (int32_t argc, Janet *argv)\n", name);
     Printf (f_wrappers, "{\n");
 
     String *last_type     = NewString ("");
