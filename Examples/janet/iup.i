@@ -19,12 +19,14 @@
   }
 
 // BEGIN Non-Swig hand generation stuff
-  /* { */
-  /*   "iup-set-thunk-callback", IupSetThunkCallback_wrapped, "" */
-  /* }, */
-  /* { */
-  /*   "IupGetAttributeAsString", IupGetAttributeAsString_wrapped, "" */
-  /* }, */
+  /*
+  {
+    "iup-set-thunk-callback", IupSetThunkCallback_wrapped, ""
+  },
+  {
+    "IupGetAttributeAsString", IupGetAttributeAsString_wrapped, ""
+  },
+  */
 
 typedef struct thunks {
   Ihandle *ih;
@@ -172,6 +174,45 @@ IupGetAttributeAsString_wrapped (int32_t argc, Janet *argv)
 %include "/usr/include/iup/iup_export.h"
 %include "/usr/include/iup/iup.h"
 %include "/usr/include/iup/iupdraw.h"
+%include "/usr/include/iup/iupim.h"
 
+ // Other things
+ /*
+iupcbs.h
+iupcontrols.h
+iupdraw.h
+iupglcontrols.h
+iupim.h
+iupluafiledlg.h
+iuplua.h
+iupluaole.h
+iupluascripterdlg.h
+iup_mglplot.h
+iup_plus.h
+iup_varg.h
+iup_class_cbs.hpp
+iupdef.h
+iup_export.h
+iupgl.h
+iupkey.h
+iupluaglcontrols.h
+iupluaim.h
+iuplua_plot.h
+iupluatuio.h
+iupole.h
+iup_scintilla.h
+iupweb.h
+iup_config.h
+iupdraw_cd.h
+iupfiledlg.h
+iup.h
+iupluacontrols.h
+iupluagl.h
+iuplua_mglplot.h
+iuplua_scintilla.h
+iupluaweb.h
+iup_plot.h
+iuptuio.h
+ */
 extern int * int_ptr ();
 extern char *** char_ptr ();
