@@ -107,12 +107,18 @@ JanetTable * janet_iup_cbs = NULL;
 
 // TODO: Re-implement the thunk storage and calling with something like this.
 static int
-janet_iup_universal_cb (Ihandle *ih)
+janet_iup_universal_cb (Ihandle *ih, int c)
 {
   JanetFunction *f = janet_unwrap_function (janet_table_get (janet_iup_cbs,
                                                              janet_wrap_pointer (ih)));
 
-  Janet res = janet_call (f, 0, NULL);
+  JanetArray *args;
+  args = janet_array (2);
+  janet_array_push (args, janet_wrap_pointer (ih));
+  janet_array_push (args, janet_wrap_integer (c));
+
+  // Janet res = janet_call (f, 0, NULL);
+  Janet res = janet_call (f, 2, args->data);
 
   return (int) janet_unwrap_integer (res);
 }
