@@ -483,7 +483,7 @@ JANET::getAccessor (String *s1, String *s)
 
   if (Strcmp (s, "char const *") == 0)
     {
-      return NewStringf ("(%s) janet_getstring", SwigType_str (s, ""));
+      return NewStringf ("(%s) janet_getcstring", SwigType_str (s, ""));
     }
 
   if (Strcmp (start, "p.") == 0)
